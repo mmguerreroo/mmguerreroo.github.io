@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vista móvil · Link in bio</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <style>
+    /* Preview tool only: shows index.html inside a phone. It doesn't need to be published. */
+    :root {
+      --bg: #e8e8e5;
+      --ink: #111;
+      --muted: #5f5f5b;
+      --chip: #fff;
+      --frame: #0b0b0b;
+      --chrome: #1c1c1e;
+      --chrome-btn: #2c2c2e;
+      color-scheme: light;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    html, body { height: 100%; }
+    body {
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    button, select { font: inherit; color: inherit; }
+
+    /* ───── Controls ───── */
+    .bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px 20px;
+      padding: 16px 24px;
+    }
+    .bar h1 { font-size: 17px; font-weight: 700; margin-right: auto; }
+    .seg { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: #d6d6d2; }
+    .seg button {
+      padding: 6px 14px;
+      border: 0;
+      border-radius: 999px;
+      background: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .seg button[aria-pressed="true"] { background: var(--chip); font-weight: 600; }
+    .toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .toggle input { width: 18px; height: 18px; accent-color: var(--ink); }
+    .act {
+      padding: 8px 16px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--ink);
+      color: #fff;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .act.ghost { background: var(--chip); color: var(--ink); }
+
+    /* ───── Stage: the phone is scaled down to fit the window ───── */
+    .stage {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 8px 16px 24px;
+    }
+    .fit { position: relative; flex: none; }
+    .phone {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: calc(var(--w) * 1px + 2 * var(--bezel));
+      height: calc(var(--h) * 1px + 2 * var(--bezel));
+      padding: var(--bezel);
+      border-radius: var(--radius);
+      background: var(--frame);
+      box-shadow: 0 0 0 2px #3a3a3a, 0 30px 60px -20px rgba(0, 0, 0, .45);
+      transform-origin: 0 0;
+      transform: scale(var(--s, 1));
+    }
+    .screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: calc(var(--radius) - var(--bezel));
+      background: #000;
+      color: #fff;
+    }
+    .camera { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); background: #000; }
+    .camera.island { top: 11px; width: 124px; height: 36px; border-radius: 20px; }
+    .camera.hole { top: 12px; width: 14px; height: 14px; border-radius: 50%; background: #111; box-shadow: 0 0 0 2px #000; }
+    .camera.none { display: none; }
+
+    .status {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: var(--status);
+      padding: var(--status-pad);
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: -.01em;
+    }
+    .status svg { height: 12px; fill: #fff; }
+    .status .icons { display: flex; align-items: center; gap: 6px; }
+
+    /* Instagram's in-app browser, dark mode, as in the user's screenshot. */
+    .ig-top, .ig-bottom { flex: none; display: flex; align-items: center; background: var(--chrome); }
+    .ig-top { height: 64px; padding: 0 12px; gap: 8px; }
+    .ig-bottom { height: 76px; padding: 0 16px 18px; justify-content: space-between; }
+    .round {
+      width: 44px; height: 44px;
+      display: grid; place-items: center;
+      border-radius: 50%;
+      background: var(--chrome-btn);
+      flex: none;
+    }
+    .round svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .ig-bottom .round { background: none; box-shadow: inset 0 0 0 1.5px #3a3a3c; }
+    .ig-bottom .round.off svg { stroke: #636366; }
+    .addr { flex: 1; min-width: 0; text-align: center; line-height: 1.2; }
+    .addr b { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 15px; font-weight: 600; }
+    .addr b svg { width: 11px; height: 11px; fill: #fff; flex: none; }
+    .addr span { font-size: 12px; color: #9a9a9e; }
+    .no-ig .ig-top, .no-ig .ig-bottom { display: none; }
+
+    iframe { flex: 1; width: 100%; min-height: 0; border: 0; background: #000; display: block; }
+    .home {
+      position: absolute;
+      z-index: 3;
+      left: 50%;
+      bottom: 8px;
+      width: 134px;
+      height: 5px;
+      border-radius: 3px;
+      background: #fff;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+    .no-home .home { display: none; }
+
+    .size { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <h1>Vista móvil</h1>
+    <div class="seg" role="group" aria-label="Modelo de móvil" data-devices></div>
+    <label class="toggle"><input type="checkbox" data-ig checked> Navegador de Instagram</label>
+    <button class="act ghost" type="button" data-reload>Recargar</button>
+    <a class="act" href="index.html" target="_blank">Abrir a tamaño real</a>
+  </header>
+
+  <main class="stage">
+    <div class="fit">
+      <div class="phone">
+        <div class="screen">
+          <div class="camera" aria-hidden="true"></div>
+          <div class="status" aria-hidden="true">
+            <span data-clock>13:46</span>
+            <span class="icons">
+              <svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+              <svg viewBox="0 0 16 12"><path d="M8 2.2c2.3 0 4.4.9 6 2.4l1.3-1.4A10.6 10.6 0 0 0 8 .3 10.6 10.6 0 0 0 .7 3.2L2 4.6a8.7 8.7 0 0 1 6-2.4zm0 3.7c1.3 0 2.5.5 3.4 1.3l1.3-1.4A6.8 6.8 0 0 0 8 4a6.8 6.8 0 0 0-4.7 1.8l1.3 1.4C5.5 6.4 6.7 5.9 8 5.9zm0 3.6c-.4 0-.8.2-1.1.4L8 11.7l1.1-1.8c-.3-.2-.7-.4-1.1-.4z"/></svg>
+              <svg viewBox="0 0 27 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="#fff" stroke-opacity=".5"/><rect x="2" y="2" width="15" height="8" rx="1.8"/><rect x="24" y="4" width="2" height="4" rx="1" fill-opacity=".5"/></svg>
+            </span>
+          </div>
+
+          <div class="ig-top" aria-hidden="true">
+            <span class="round"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+            <div class="addr">
+              <b><svg viewBox="0 0 12 14"><path d="M3 6V4a3 3 0 0 1 6 0v2h.5A1.5 1.5 0 0 1 11 7.5v5A1.5 1.5 0 0 1 9.5 14h-7A1.5 1.5 0 0 1 1 12.5v-5A1.5 1.5 0 0 1 2.5 6zm1.5 0h3V4a1.5 1.5 0 0 0-3 0z"/></svg><span data-domain>mmguerreroo.github.io</span></b>
+              <span>Instagram</span>
+            </div>
+            <span class="round"><svg viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3"/></svg></span>
+          </div>
+
+          <iframe src="index.html" title="Tu página vista en un móvil" allow="web-share; clipboard-write"></iframe>
+
+          <div class="ig-bottom" aria-hidden="true">
+            <span class="round off"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+            <span class="round off"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span>
+            <span class="round"><svg viewBox="0 0 24 24"><path d="M21 3 3 10.5l7 3 3 7.5z M10 13.5 21 3"/></svg></span>
+            <span class="round"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="2 2.6"/><path d="m15 9-4.5 2-1.5 4 4.5-2z"/></svg></span>
+            <span class="round"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4"/></svg></span>
+          </div>
+
+          <div class="home" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+    <p class="size" data-size></p>
+  </main>
+
+  <script>
+    // Viewport sizes in CSS pixels, the size the page actually lays out at on each phone.
+    const DEVICES = {
+      iphone:  { name: 'iPhone 15',  w: 390, h: 844, radius: 62, bezel: 12, camera: 'island', status: 54, pad: '0 34px 0 44px', home: true },
+      se:      { name: 'iPhone SE',  w: 375, h: 667, radius: 40, bezel: 14, camera: 'none',   status: 22, pad: '0 10px',        home: false },
+      max:     { name: 'Pro Max',    w: 430, h: 932, radius: 66, bezel: 12, camera: 'island', status: 58, pad: '0 36px 0 48px', home: true },
+      android: { name: 'Android',    w: 360, h: 780, radius: 44, bezel: 10, camera: 'hole',   status: 38, pad: '0 20px',        home: false },
+    };
+
+    const phone = document.querySelector('.phone');
+    const fit = document.querySelector('.fit');
+    const stage = document.querySelector('.stage');
+    const frame = document.querySelector('iframe');
+    const igBox = document.querySelector('[data-ig]');
+    const seg = document.querySelector('[data-devices]');
+
+    const load = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
+    const save = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+
+    let current = DEVICES[load('preview.device', 'iphone')] ? load('preview.device', 'iphone') : 'iphone';
+    igBox.checked = load('preview.ig', '1') === '1';
+
+    seg.innerHTML = Object.entries(DEVICES)
+      .map(([id, d]) => `<button type="button" data-device="${id}">${d.name}</button>`).join('');
+
+    function apply() {
+      const d = DEVICES[current];
+      phone.style.setProperty('--w', d.w);
+      phone.style.setProperty('--h', d.h);
+      phone.style.setProperty('--radius', d.radius + 'px');
+      phone.style.setProperty('--bezel', d.bezel + 'px');
+      phone.style.setProperty('--status', d.status + 'px');
+      phone.style.setProperty('--status-pad', d.pad);
+      phone.querySelector('.camera').className = 'camera ' + d.camera;
+      phone.classList.toggle('no-ig', !igBox.checked);
+      phone.classList.toggle('no-home', !d.home);
+      seg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.device === current));
+      resize();
+    }
+
+    // Scale the phone so it always fits the window, never above its real size.
+    function resize() {
+      const d = DEVICES[current];
+      const fullW = d.w + 2 * d.bezel;
+      const fullH = d.h + 2 * d.bezel;
+      const cs = getComputedStyle(stage);
+      const room = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 32;
+      const roomW = stage.clientWidth - 32;
+      const s = Math.min(1, room / fullH, roomW / fullW);
+      phone.style.setProperty('--s', s);
+      fit.style.width = fullW * s + 'px';
+      fit.style.height = fullH * s + 'px';
+      const pageH = frame.clientHeight;
+      document.querySelector('[data-size]').textContent =
+        `${d.name} · ${d.w} × ${d.h} px · la página tiene ${d.w} × ${pageH} px visibles` +
+        (s < 1 ? ` · reducido al ${Math.round(s * 100)} %` : '');
+    }
+
+    seg.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-device]');
+      if (!b) return;
+      current = b.dataset.device;
+      save('preview.device', current);
+      apply();
+    });
+    igBox.addEventListener('change', () => { save('preview.ig', igBox.checked ? '1' : '0'); apply(); });
+    // Reloading also replays the entrance and the buttons lighting up.
+    document.querySelector('[data-reload]').addEventListener('click', () => { frame.src = 'index.html'; });
+    addEventListener('resize', resize);
+
+    const clock = document.querySelector('[data-clock]');
+    const tick = () => { clock.textContent = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }); };
+    tick();
+    setInterval(tick, 15000);
+
+    apply();
+  </script>
+</body>
+</html>

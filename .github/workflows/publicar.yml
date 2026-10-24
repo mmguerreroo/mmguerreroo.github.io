@@ -1,0 +1,73 @@
+# Publishes the page on GitHub Pages and refreshes the follower counts every 6 hours.
+name: Publicar y actualizar seguidores
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Actualizar seguidores
+        id: stats
+        continue-on-error: true
+        run: node scripts/actualizar-seguidores.mjs
+        env:
+          STATE_KEY: ${{ secrets.STATE_KEY }}
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+
+      # Keeps the last good counts and the renewed tokens for the next run.
+      - name: Guardar cifras y tokens
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add stats.js
+          if [ -f datos/tokens.enc ]; then git add datos/tokens.enc; fi
+          if ! git diff --cached --quiet; then
+            git commit -m "Actualizar seguidores"
+            git pull --rebase
+            git push
+          fi
+
+      # Only the page itself is published, not the scripts or the tokens.
+      - name: Preparar la web
+        run: |
+          mkdir _site
+          cp -r index.html styles.css app.js stats.js favicon.svg fonts img _site/
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+      - name: Avisar si falló alguna red
+        if: steps.stats.outcome == 'failure'
+        run: |
+          echo "::error::No se pudo actualizar alguna red. Mira el paso 'Actualizar seguidores'."
+          exit 1

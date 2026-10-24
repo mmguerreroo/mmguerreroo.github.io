@@ -1,0 +1,322 @@
+/* Self-hosted so it loads fast inside the Instagram/TikTok in-app browser. */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("fonts/bricolage-grotesque-latin.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+:root {
+  --bg: #000;
+  --surface: #151515;
+  --surface-2: #232323;
+  --ink: #f5f5f3;
+  --muted: #a4a4a0;
+  --radius: 24px;
+  --font: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --tt-cyan: #25f4ee;
+  --tt-red: #fe2c55;
+  --yt-red: #ff0033;
+  --ig-grad: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+body {
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+a, button { font: inherit; color: inherit; }
+button { border: 0; background: none; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+::selection { background: var(--ink); color: var(--bg); }
+
+/* ───── Layout ───── */
+/* Sized so everything fits without scrolling inside Instagram's browser (≈650px tall on an iPhone 15). */
+.page {
+  position: relative;
+  min-height: 100dvh;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 16px);
+  display: flex;
+  flex-direction: column;
+}
+/* Floats in the corner on phones so it doesn't cost a row of height. */
+.top { position: absolute; z-index: 2; top: calc(env(safe-area-inset-top) + 12px); right: 12px; }
+.icon-btn {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--surface);
+  transition: background .2s, transform .2s var(--ease);
+}
+.icon-btn svg { width: 22px; height: 22px; }
+.icon-btn:hover { background: var(--surface-2); }
+.icon-btn:active { transform: scale(.92); }
+
+/* ───── Profile ───── */
+/* margin-top: auto centres the column on tall screens (tablets) and does nothing on phones. */
+.profile { display: flex; flex-direction: column; align-items: center; text-align: center; margin-top: auto; }
+.avatar {
+  width: 96px; height: 96px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface-2);
+  font-size: 40px; font-weight: 700;
+}
+.avatar > * { grid-area: 1 / 1; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.name {
+  margin-top: 16px;
+  font-size: 38px;
+  font-weight: 760;
+  line-height: 1;
+  letter-spacing: -.035em;
+}
+.socials { display: flex; gap: 4px; margin-top: 12px; }
+.socials a {
+  width: 48px; height: 48px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  transition: color .2s, transform .2s var(--ease);
+}
+.socials svg { width: 28px; height: 28px; fill: currentColor; }
+.socials a:active { transform: scale(.9); }
+@media (hover: hover) {
+  .socials a[data-net="tiktok"]:hover { color: var(--tt-cyan); }
+  .socials a[data-net="instagram"]:hover { color: #fd5949; }
+  .socials a[data-net="youtube"]:hover { color: var(--yt-red); }
+}
+
+/* ───── Cards: each one fills with its network's colour from where you touch it ───── */
+.links { display: flex; flex-direction: column; gap: 10px; margin-top: 22px; }
+.card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 72px;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-decoration: none;
+  transition: color .45s var(--ease), transform .2s var(--ease);
+}
+.card:active { transform: scale(.98); }
+.flood {
+  position: absolute;
+  z-index: -1;
+  left: var(--x, 50%);
+  top: var(--y, 50%);
+  width: var(--d, 640px);
+  height: var(--d, 640px);
+  margin: calc(var(--d, 640px) / -2) 0 0 calc(var(--d, 640px) / -2);
+  border-radius: 50%;
+  background: var(--brand);
+  transform: scale(0);
+  transition: transform .55s var(--ease);
+  pointer-events: none;
+}
+.card.is-on .flood { transform: scale(1); }
+.card.is-on { color: var(--on); }
+
+.logo { width: 30px; height: 30px; overflow: visible; }
+.label { min-width: 0; }
+.label strong { display: block; font-size: 19px; font-weight: 650; letter-spacing: -.01em; line-height: 1.25; }
+.label small, .stat small { display: block; font-size: 14px; color: var(--muted); transition: color .3s var(--ease); }
+.label small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stat { text-align: right; }
+.stat b {
+  display: block;
+  font-size: 22px;
+  font-weight: 760;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.card.is-on small { color: var(--on-soft); }
+
+/* TikTok: the logo's cyan and red offsets; the card turns cyan. */
+.card[data-net="tiktok"] { --brand: var(--tt-cyan); --on: #000; --on-soft: rgba(0, 0, 0, .68); }
+.tt-a { fill: var(--tt-cyan); transform: translate(-.9px, -.9px); }
+.tt-b { fill: var(--tt-red); transform: translate(.9px, .9px); }
+.tt-main { fill: #fff; }
+.tt-a, .tt-main { transition: fill .3s var(--ease); }
+.card[data-net="tiktok"].is-on .tt-a { fill: transparent; }
+.card[data-net="tiktok"].is-on .tt-main { fill: #000; }
+
+/* Instagram: its own gradient, the one place this page uses one. */
+.card[data-net="instagram"] { --brand: var(--ig-grad); --on: #fff; --on-soft: rgba(255, 255, 255, .82); }
+.ig-path { fill: url(#ig-grad); transition: fill .3s; }
+.card[data-net="instagram"].is-on .ig-path { fill: #fff; }
+
+/* YouTube: red card, white logo with a red play triangle. */
+.card[data-net="youtube"] { --brand: var(--yt-red); --on: #fff; --on-soft: rgba(255, 255, 255, .85); }
+.yt-play { fill: #fff; }
+.yt-body { fill: var(--yt-red); transition: fill .3s; }
+.card[data-net="youtube"].is-on .yt-play { fill: var(--yt-red); }
+.card[data-net="youtube"].is-on .yt-body { fill: #fff; }
+
+/* ───── Contact ───── */
+.contact {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  min-height: 60px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 18px;
+  font-weight: 650;
+  transition: transform .2s var(--ease), background .2s;
+}
+.contact svg { width: 22px; height: 22px; }
+.contact:hover { background: #fff; }
+.contact:active { transform: scale(.97); }
+
+.foot { margin-top: auto; padding-top: 24px; text-align: center; font-size: 13px; color: var(--muted); }
+
+/* ───── Contact sheet: a bottom sheet on phones, a centred box on desktop ───── */
+.sheet {
+  width: 100%;
+  max-width: 520px;
+  margin: auto auto 0;
+  padding: 28px 20px calc(env(safe-area-inset-bottom) + 20px);
+  border: 0;
+  border-radius: 28px 28px 0 0;
+  background: var(--surface);
+  color: var(--ink);
+}
+.sheet[open] { animation: sheet-in .35s var(--ease); }
+.sheet::backdrop { background: rgba(0, 0, 0, .7); }
+.sheet h2:focus { outline: none; }
+.sheet h2 { font-size: 28px; font-weight: 720; letter-spacing: -.025em; line-height: 1.1; padding-right: 48px; }
+.sheet-text { margin-top: 8px; color: var(--muted); font-size: 16px; }
+.sheet-email {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--bg);
+  font-size: 18px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.sheet-actions { display: grid; gap: 10px; margin-top: 16px; }
+.btn {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 56px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 17px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform .2s var(--ease), background .2s;
+}
+.btn:hover { background: #2e2e2e; }
+.btn:active { transform: scale(.97); }
+.btn-main, .btn-main:hover { background: var(--ink); color: var(--bg); }
+.sheet-close-form { position: absolute; top: 16px; right: 16px; }
+.sheet-close {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--surface-2);
+}
+.sheet-close svg { width: 20px; height: 20px; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 24px);
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 12px);
+  transition: opacity .25s, transform .25s var(--ease);
+  pointer-events: none;
+  z-index: 10;
+}
+.toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ───── Entrance ───── */
+.profile > *, .links > * { animation: rise .6s var(--ease) both; }
+.avatar { animation-delay: 0ms; }
+.name { animation-delay: 70ms; }
+.socials { animation-delay: 140ms; }
+.links > :nth-child(1) { animation-delay: 300ms; }
+.links > :nth-child(2) { animation-delay: 370ms; }
+.links > :nth-child(3) { animation-delay: 440ms; }
+.links > :nth-child(4) { animation-delay: 510ms; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(20px); } }
+@keyframes sheet-in { from { transform: translateY(40px); opacity: 0; } }
+
+/* ───── Desktop: profile on the left, big; buttons on the right ───── */
+@media (min-width: 960px) {
+  .page {
+    max-width: 1040px;
+    padding: 32px 48px;
+    display: grid;
+    grid-template-columns: 1fr 440px;
+    grid-template-rows: auto 1fr auto;
+    column-gap: 80px;
+    align-items: center;
+  }
+  .top { grid-column: 1 / -1; position: static; justify-self: end; }
+  .profile { align-items: flex-start; text-align: left; margin-top: 0; }
+  .avatar { width: 160px; height: 160px; font-size: 64px; }
+  /* "Miguel / Guerrero" on two lines; sized so "Guerrero" fits the left column at every width. */
+  .name { margin-top: 32px; font-size: clamp(64px, 6.2vw, 96px); letter-spacing: -.035em; }
+  .socials { margin: 20px 0 0 -12px; }
+  .links { margin-top: 0; }
+  .foot { grid-column: 1 / -1; padding-top: 32px; text-align: left; }
+
+  .sheet { margin: auto; border-radius: 28px; padding: 32px; }
+}
+
+/* Shorter screens, e.g. an iPhone 15 inside Instagram (≈650px visible). */
+@media (max-width: 959px) and (max-height: 700px) {
+  .avatar { width: 84px; height: 84px; font-size: 36px; }
+  .name { margin-top: 12px; font-size: 34px; }
+  .socials { margin-top: 6px; }
+  .links { margin-top: 18px; }
+  .card { min-height: 68px; }
+  .contact { min-height: 56px; }
+  .foot { padding-top: 16px; }
+}
+
+/* Very short screens, e.g. an iPhone SE inside Instagram (≈505px visible): the icon row and the
+   footer go, since the cards below already link to every network. */
+@media (max-width: 959px) and (max-height: 600px) {
+  .page { padding-top: calc(env(safe-area-inset-top) + 14px); }
+  .avatar { width: 64px; height: 64px; font-size: 28px; }
+  .name { margin-top: 10px; font-size: 30px; }
+  .socials, .foot { display: none; }
+  .links { margin-top: 16px; gap: 8px; }
+  .card { min-height: 62px; padding: 10px 18px; }
+  .label strong { font-size: 17px; }
+  .stat b { font-size: 20px; }
+  .contact { min-height: 52px; font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: 0s !important; }
+}
