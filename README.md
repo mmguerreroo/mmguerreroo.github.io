@@ -102,9 +102,15 @@ GitHub Actions**.
 - **Botones vivos:** al tocar (o al pasar el ratón) cada botón se llena con el color de su red desde
   el punto donde está el dedo. Al cargar, se encienden una vez en cascada y los contadores suben
   desde cero.
-- **Contacta conmigo:** abre una hoja con el email y tres opciones: la app de correo, Gmail en la web
-  (por si el navegador de Instagram no abre la app) o copiar la dirección. El email no aparece en el
-  HTML para que no lo recojan los robots de spam.
+- **Contacta conmigo:** abre directamente un correo nuevo para `mguem10@gmail.com`, con el asunto
+  "Hola Miguel":
+  - En el ordenador, Gmail en una pestaña nueva.
+  - En el iPhone, la app de Gmail. Si no la tiene instalada, a los 1,5 s se abre la app de correo
+    del móvil.
+  - En Android, la app de correo, que en casi todos es Gmail. Se hace así porque en el navegador
+    de Instagram nadie tiene la sesión de Gmail iniciada.
+
+  El email no aparece en el HTML, para que no lo recojan los robots de spam.
 - **Compartir** (arriba a la derecha): el menú de compartir del móvil, o copia el enlace en PC.
 - Móvil primero; a partir de 960 px de ancho se pone en dos columnas.
 - La tipografía (Bricolage Grotesque, licencia OFL) va dentro de `fonts/` para que cargue rápido y no

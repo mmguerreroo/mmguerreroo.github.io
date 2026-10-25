@@ -126,34 +126,39 @@ if (!calm) {
   cards.forEach((c) => c.addEventListener('pointerdown', () => c.classList.remove('is-intro'), { capture: true }));
 }
 
-// ───── Contact sheet ─────
+// ───── Contact: straight to a Gmail draft addressed to me ─────
 const email = `${CONTACTO.usuario}@${CONTACTO.dominio}`;
-const sheet = document.getElementById('contacto');
+const to = encodeURIComponent(email);
 const subject = encodeURIComponent(CONTACTO.asunto);
+const gmailWeb = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}`;
+const gmailApp = `googlegmail:///co?to=${to}&subject=${subject}`;
+const mailto = `mailto:${email}?subject=${subject}`;
+const ua = navigator.userAgent;
+const isIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/.test(ua);
 
-sheet.querySelector('[data-email]').textContent = email;
-sheet.querySelector('[data-mail="app"]').href = `mailto:${email}?subject=${subject}`;
-sheet.querySelector('[data-mail="gmail"]').href =
-  `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${subject}`;
+// On a computer the link itself opens Gmail in a new tab.
+const contact = document.querySelector('[data-contact]');
+contact.href = gmailWeb;
 
-document.querySelector('[data-contact]').addEventListener('click', () => {
-  if (typeof sheet.showModal === 'function') {
-    sheet.showModal();
-    // Focus the title, not the close button, so no focus ring shows on a tap.
-    sheet.querySelector('h2').focus({ preventScroll: true });
-  } else location.href = `mailto:${email}?subject=${subject}`;
-});
-
-// Tapping the dark area around the sheet closes it.
-sheet.addEventListener('click', (e) => {
-  if (e.target !== sheet) return;
-  const r = sheet.getBoundingClientRect();
-  const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-  if (!inside) sheet.close();
-});
-
-sheet.querySelector('[data-copy]').addEventListener('click', async () => {
-  toast((await copy(email)) ? 'Email copiado' : 'No se pudo copiar');
+contact.addEventListener('click', (e) => {
+  // On Android, Gmail is the phone's mail app, and in Instagram's browser nobody is signed in to
+  // Gmail on the web, so hand the email to the app.
+  if (isAndroid) {
+    e.preventDefault();
+    location.href = mailto;
+    return;
+  }
+  if (!isIOS) return;
+  // On iPhone, open the Gmail app. If the page is still showing 1.5 s later the app isn't
+  // installed, so fall back to the phone's mail app.
+  e.preventDefault();
+  const fallback = setTimeout(() => { location.href = mailto; }, 1500);
+  const cancel = () => clearTimeout(fallback);
+  addEventListener('pagehide', cancel, { once: true });
+  addEventListener('blur', cancel, { once: true });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) cancel(); }, { once: true });
+  location.href = gmailApp;
 });
 
 // ───── Share ─────
