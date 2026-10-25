@@ -105,10 +105,11 @@ GitHub Actions**.
 - **Contacta conmigo:** abre directamente un correo nuevo para `mguem10@gmail.com`, con el asunto
   "Hola Miguel":
   - En el ordenador, Gmail en una pestaña nueva.
-  - En el iPhone, la app de Gmail. Si no la tiene instalada, a los 1,5 s se abre la app de correo
-    del móvil.
-  - En Android, la app de correo, que en casi todos es Gmail. Se hace así porque en el navegador
-    de Instagram nadie tiene la sesión de Gmail iniciada.
+  - En el móvil, un enlace `mailto:` normal, que abre la app de correo del teléfono: Gmail en
+    Android, y en el iPhone la app de correo elegida por defecto.
+  - Antes, en el iPhone se intentaba abrir la app de Gmail con `googlegmail://` y, si fallaba, se
+    pasaba a la app de correo 1,5 s después. Se quitó el 25/10/2026 porque el navegador de
+    Instagram bloquea los saltos a otra app hechos desde código o con retraso, y no se abría nada.
 
   El email no aparece en el HTML, para que no lo recojan los robots de spam.
 - **Compartir** (arriba a la derecha): el menú de compartir del móvil, o copia el enlace en PC.

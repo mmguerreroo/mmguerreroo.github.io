@@ -131,35 +131,18 @@ const email = `${CONTACTO.usuario}@${CONTACTO.dominio}`;
 const to = encodeURIComponent(email);
 const subject = encodeURIComponent(CONTACTO.asunto);
 const gmailWeb = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}`;
-const gmailApp = `googlegmail:///co?to=${to}&subject=${subject}`;
 const mailto = `mailto:${email}?subject=${subject}`;
 const ua = navigator.userAgent;
-const isIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-const isAndroid = /Android/.test(ua);
+const isPhone = /iPhone|iPad|iPod|Android/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
 
-// On a computer the link itself opens Gmail in a new tab.
+// On a computer: Gmail on the web, in a new tab.
+// On a phone: a plain mailto: link, which opens the phone's mail app (Gmail on Android, and on an
+// iPhone whatever is set as the default mail app). A tap on a real link is the only way to another
+// app that in-app browsers like Instagram's and TikTok's reliably allow; jumping to an app from
+// script (googlegmail://), or after a delay, gets blocked there and nothing opens.
 const contact = document.querySelector('[data-contact]');
-contact.href = gmailWeb;
-
-contact.addEventListener('click', (e) => {
-  // On Android, Gmail is the phone's mail app, and in Instagram's browser nobody is signed in to
-  // Gmail on the web, so hand the email to the app.
-  if (isAndroid) {
-    e.preventDefault();
-    location.href = mailto;
-    return;
-  }
-  if (!isIOS) return;
-  // On iPhone, open the Gmail app. If the page is still showing 1.5 s later the app isn't
-  // installed, so fall back to the phone's mail app.
-  e.preventDefault();
-  const fallback = setTimeout(() => { location.href = mailto; }, 1500);
-  const cancel = () => clearTimeout(fallback);
-  addEventListener('pagehide', cancel, { once: true });
-  addEventListener('blur', cancel, { once: true });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) cancel(); }, { once: true });
-  location.href = gmailApp;
-});
+contact.href = isPhone ? mailto : gmailWeb;
+if (isPhone) contact.removeAttribute('target');
 
 // ───── Share ─────
 document.querySelector('[data-share]').addEventListener('click', async () => {
