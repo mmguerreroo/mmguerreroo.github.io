@@ -126,23 +126,35 @@ if (!calm) {
   cards.forEach((c) => c.addEventListener('pointerdown', () => c.classList.remove('is-intro'), { capture: true }));
 }
 
-// ───── Contact: straight to a Gmail draft addressed to me ─────
+// ───── Contact sheet ─────
 const email = `${CONTACTO.usuario}@${CONTACTO.dominio}`;
-const to = encodeURIComponent(email);
+const sheet = document.getElementById('contacto');
 const subject = encodeURIComponent(CONTACTO.asunto);
-const gmailWeb = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}`;
-const mailto = `mailto:${email}?subject=${subject}`;
-const ua = navigator.userAgent;
-const isPhone = /iPhone|iPad|iPod|Android/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
 
-// On a computer: Gmail on the web, in a new tab.
-// On a phone: a plain mailto: link, which opens the phone's mail app (Gmail on Android, and on an
-// iPhone whatever is set as the default mail app). A tap on a real link is the only way to another
-// app that in-app browsers like Instagram's and TikTok's reliably allow; jumping to an app from
-// script (googlegmail://), or after a delay, gets blocked there and nothing opens.
-const contact = document.querySelector('[data-contact]');
-contact.href = isPhone ? mailto : gmailWeb;
-if (isPhone) contact.removeAttribute('target');
+sheet.querySelector('[data-email]').textContent = email;
+sheet.querySelector('[data-mail="app"]').href = `mailto:${email}?subject=${subject}`;
+sheet.querySelector('[data-mail="gmail"]').href =
+  `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${subject}`;
+
+document.querySelector('[data-contact]').addEventListener('click', () => {
+  if (typeof sheet.showModal === 'function') {
+    sheet.showModal();
+    // Focus the title, not the close button, so no focus ring shows on a tap.
+    sheet.querySelector('h2').focus({ preventScroll: true });
+  } else location.href = `mailto:${email}?subject=${subject}`;
+});
+
+// Tapping the dark area around the sheet closes it.
+sheet.addEventListener('click', (e) => {
+  if (e.target !== sheet) return;
+  const r = sheet.getBoundingClientRect();
+  const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+  if (!inside) sheet.close();
+});
+
+sheet.querySelector('[data-copy]').addEventListener('click', async () => {
+  toast((await copy(email)) ? 'Email copiado' : 'No se pudo copiar');
+});
 
 // ───── Share ─────
 document.querySelector('[data-share]').addEventListener('click', async () => {

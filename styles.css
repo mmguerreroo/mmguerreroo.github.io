@@ -180,7 +180,6 @@ button { border: 0; background: none; cursor: pointer; }
   color: var(--bg);
   font-size: 18px;
   font-weight: 650;
-  text-decoration: none;
   transition: transform .2s var(--ease), background .2s;
 }
 .contact svg { width: 22px; height: 22px; }
@@ -188,6 +187,56 @@ button { border: 0; background: none; cursor: pointer; }
 .contact:active { transform: scale(.97); }
 
 .foot { margin-top: auto; padding-top: 24px; text-align: center; font-size: 13px; color: var(--muted); }
+
+/* ───── Contact sheet: a bottom sheet on phones, a centred box on desktop ───── */
+.sheet {
+  width: 100%;
+  max-width: 520px;
+  margin: auto auto 0;
+  padding: 28px 20px calc(env(safe-area-inset-bottom) + 20px);
+  border: 0;
+  border-radius: 28px 28px 0 0;
+  background: var(--surface);
+  color: var(--ink);
+}
+.sheet[open] { animation: sheet-in .35s var(--ease); }
+.sheet::backdrop { background: rgba(0, 0, 0, .7); }
+.sheet h2:focus { outline: none; }
+.sheet h2 { font-size: 28px; font-weight: 720; letter-spacing: -.025em; line-height: 1.1; padding-right: 48px; }
+.sheet-text { margin-top: 8px; color: var(--muted); font-size: 16px; }
+.sheet-email {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--bg);
+  font-size: 18px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.sheet-actions { display: grid; gap: 10px; margin-top: 16px; }
+.btn {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 56px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 17px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform .2s var(--ease), background .2s;
+}
+.btn:hover { background: #2e2e2e; }
+.btn:active { transform: scale(.97); }
+.btn-main, .btn-main:hover { background: var(--ink); color: var(--bg); }
+.sheet-close-form { position: absolute; top: 16px; right: 16px; }
+.sheet-close {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--surface-2);
+}
+.sheet-close svg { width: 20px; height: 20px; }
 
 .toast {
   position: fixed;
@@ -218,6 +267,7 @@ button { border: 0; background: none; cursor: pointer; }
 .links > :nth-child(4) { animation-delay: 510ms; }
 
 @keyframes rise { from { opacity: 0; transform: translateY(20px); } }
+@keyframes sheet-in { from { transform: translateY(40px); opacity: 0; } }
 
 /* ───── Desktop: profile on the left, big; buttons on the right ───── */
 @media (min-width: 960px) {
@@ -238,6 +288,8 @@ button { border: 0; background: none; cursor: pointer; }
   .socials { margin: 20px 0 0 -12px; }
   .links { margin-top: 0; }
   .foot { grid-column: 1 / -1; padding-top: 32px; text-align: left; }
+
+  .sheet { margin: auto; border-radius: 28px; padding: 32px; }
 }
 
 /* Shorter screens, e.g. an iPhone 15 inside Instagram (≈650px visible). */
