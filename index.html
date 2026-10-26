@@ -5,8 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Miguel Guerrero · TikTok, Instagram y YouTube</title>
   <meta name="description" content="Mis redes (TikTok, Instagram y YouTube) y mi contacto, en un solo sitio.">
-  <meta name="theme-color" content="#000000">
-  <meta name="color-scheme" content="dark">
+  <!-- Light or dark, following the visitor's phone or computer. -->
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
+  <script>
+    // vista-movil.html can force a theme with ?tema=claro or ?tema=oscuro; visitors always get their own.
+    (function () {
+      var t = new URLSearchParams(location.search).get('tema');
+      if (t === 'claro') document.documentElement.dataset.theme = 'light';
+      if (t === 'oscuro') document.documentElement.dataset.theme = 'dark';
+    })();
+  </script>
   <meta property="og:type" content="website">
   <meta property="og:title" content="Miguel Guerrero">
   <meta property="og:description" content="Mis redes y mi contacto.">

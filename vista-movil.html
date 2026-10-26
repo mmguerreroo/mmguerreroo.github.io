@@ -151,6 +151,18 @@
     }
     .no-home .home { display: none; }
 
+    /* Light theme: the phone's screen and Instagram's browser go light too, as on a real phone. */
+    .phone.is-light .screen, .phone.is-light iframe { background: #fff; color: #000; }
+    .phone.is-light .status svg, .phone.is-light .addr b svg { fill: #000; }
+    .phone.is-light .status svg rect[stroke] { stroke: #000; }
+    .phone.is-light .ig-top, .phone.is-light .ig-bottom { background: #f2f2f7; }
+    .phone.is-light .round { background: #e5e5ea; }
+    .phone.is-light .round svg { stroke: #000; }
+    .phone.is-light .ig-bottom .round { background: none; box-shadow: inset 0 0 0 1.5px #d1d1d6; }
+    .phone.is-light .ig-bottom .round.off svg { stroke: #aeaeb2; }
+    .phone.is-light .addr span { color: #6e6e73; }
+    .phone.is-light .home { background: #000; }
+
     .size { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
   </style>
 </head>
@@ -158,6 +170,7 @@
   <header class="bar">
     <h1>Vista móvil</h1>
     <div class="seg" role="group" aria-label="Modelo de móvil" data-devices></div>
+    <div class="seg" role="group" aria-label="Tema" data-themes></div>
     <label class="toggle"><input type="checkbox" data-ig checked> Navegador de Instagram</label>
     <button class="act ghost" type="button" data-reload>Recargar</button>
     <a class="act" href="index.html" target="_blank">Abrir a tamaño real</a>
@@ -186,7 +199,7 @@
             <span class="round"><svg viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3"/></svg></span>
           </div>
 
-          <iframe src="index.html" title="Tu página vista en un móvil" allow="web-share; clipboard-write"></iframe>
+          <iframe title="Tu página vista en un móvil" allow="web-share; clipboard-write"></iframe>
 
           <div class="ig-bottom" aria-hidden="true">
             <span class="round off"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
@@ -269,8 +282,33 @@
       apply();
     });
     igBox.addEventListener('change', () => { save('preview.ig', igBox.checked ? '1' : '0'); apply(); });
+
+    // ───── Theme: like the PC, or forced light/dark through index.html?tema= ─────
+    const THEMES = { sistema: 'Como el PC', claro: 'Claro', oscuro: 'Oscuro' };
+    const themeSeg = document.querySelector('[data-themes]');
+    const systemLight = matchMedia('(prefers-color-scheme: light)');
+    let theme = THEMES[load('preview.theme', 'sistema')] ? load('preview.theme', 'sistema') : 'sistema';
+    themeSeg.innerHTML = Object.entries(THEMES)
+      .map(([id, name]) => `<button type="button" data-theme="${id}">${name}</button>`).join('');
+    const pageUrl = () => 'index.html' + (theme === 'sistema' ? '' : `?tema=${theme}`);
+
+    function applyTheme() {
+      phone.classList.toggle('is-light', theme === 'claro' || (theme === 'sistema' && systemLight.matches));
+      themeSeg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.theme === theme));
+      frame.src = pageUrl();
+    }
+    themeSeg.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-theme]');
+      if (!b) return;
+      theme = b.dataset.theme;
+      save('preview.theme', theme);
+      applyTheme();
+    });
+    systemLight.addEventListener('change', () => { if (theme === 'sistema') applyTheme(); });
+    applyTheme();
+
     // Reloading also replays the entrance and the buttons lighting up.
-    document.querySelector('[data-reload]').addEventListener('click', () => { frame.src = 'index.html'; });
+    document.querySelector('[data-reload]').addEventListener('click', () => { frame.src = pageUrl(); });
     addEventListener('resize', resize);
 
     const clock = document.querySelector('[data-clock]');

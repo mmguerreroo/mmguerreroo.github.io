@@ -6,19 +6,57 @@
   font-display: swap;
 }
 
+/* Dark is the default; the light palette below follows the visitor's phone or computer. */
 :root {
   --bg: #000;
   --surface: #151515;
   --surface-2: #232323;
+  --surface-3: #2e2e2e;
   --ink: #f5f5f3;
+  --ink-hover: #fff;
   --muted: #a4a4a0;
+  --tt-main: #fff;               /* TikTok's note: white on dark, black on light, like its own logo */
+  --tt-hover: var(--tt-cyan);
+  --backdrop: rgba(0, 0, 0, .7);
   --radius: 24px;
   --font: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
   --ease: cubic-bezier(.2, .7, .2, 1);
   --tt-cyan: #25f4ee;
   --tt-red: #fe2c55;
   --yt-red: #ff0033;
-  --ig-grad: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);  color-scheme: dark;
+  --ig-grad: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+  color-scheme: dark;
+}
+
+/* Light palette. Written twice: once for visitors whose system is light, once for ?tema=claro,
+   which vista-movil.html uses to preview either theme. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #fff;
+    --surface: #f1f1ef;
+    --surface-2: #e6e6e3;
+    --surface-3: #dadad6;
+    --ink: #0d0d0d;
+    --ink-hover: #262626;
+    --muted: #62625e;
+    --tt-main: #000;
+    --tt-hover: #00918c;
+    --backdrop: rgba(0, 0, 0, .4);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #fff;
+  --surface: #f1f1ef;
+  --surface-2: #e6e6e3;
+  --surface-3: #dadad6;
+  --ink: #0d0d0d;
+  --ink-hover: #262626;
+  --muted: #62625e;
+  --tt-main: #000;
+  --tt-hover: #00918c;
+  --backdrop: rgba(0, 0, 0, .4);
+  color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
@@ -92,7 +130,7 @@ button { border: 0; background: none; cursor: pointer; }
 .socials svg { width: 28px; height: 28px; fill: currentColor; }
 .socials a:active { transform: scale(.9); }
 @media (hover: hover) {
-  .socials a[data-net="tiktok"]:hover { color: var(--tt-cyan); }
+  .socials a[data-net="tiktok"]:hover { color: var(--tt-hover); }
   .socials a[data-net="instagram"]:hover { color: #fd5949; }
   .socials a[data-net="youtube"]:hover { color: var(--yt-red); }
 }
@@ -130,7 +168,9 @@ button { border: 0; background: none; cursor: pointer; }
   pointer-events: none;
 }
 .card.is-on .flood { transform: scale(1); }
-.card.is-on { color: var(--on); }
+/* The text changes colour a beat after the flood starts, so it never turns white over the light
+   card before the colour has reached it. */
+.card.is-on { color: var(--on); transition: color .3s var(--ease) .15s, transform .2s var(--ease); }
 
 .logo { width: 30px; height: 30px; overflow: visible; }
 .label { min-width: 0; }
@@ -147,13 +187,13 @@ button { border: 0; background: none; cursor: pointer; }
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.card.is-on small { color: var(--on-soft); }
+.card.is-on small { color: var(--on-soft); transition-delay: .15s; }
 
 /* TikTok: the logo's cyan and red offsets; the card turns cyan. */
 .card[data-net="tiktok"] { --brand: var(--tt-cyan); --on: #000; --on-soft: rgba(0, 0, 0, .68); }
 .tt-a { fill: var(--tt-cyan); transform: translate(-.9px, -.9px); }
 .tt-b { fill: var(--tt-red); transform: translate(.9px, .9px); }
-.tt-main { fill: #fff; }
+.tt-main { fill: var(--tt-main); }
 .tt-a, .tt-main { transition: fill .3s var(--ease); }
 .card[data-net="tiktok"].is-on .tt-a { fill: transparent; }
 .card[data-net="tiktok"].is-on .tt-main { fill: #000; }
@@ -183,7 +223,7 @@ button { border: 0; background: none; cursor: pointer; }
   transition: transform .2s var(--ease), background .2s;
 }
 .contact svg { width: 22px; height: 22px; }
-.contact:hover { background: #fff; }
+.contact:hover { background: var(--ink-hover); }
 .contact:active { transform: scale(.97); }
 
 .foot { margin-top: auto; padding-top: 24px; text-align: center; font-size: 13px; color: var(--muted); }
@@ -200,7 +240,7 @@ button { border: 0; background: none; cursor: pointer; }
   color: var(--ink);
 }
 .sheet[open] { animation: sheet-in .35s var(--ease); }
-.sheet::backdrop { background: rgba(0, 0, 0, .7); }
+.sheet::backdrop { background: var(--backdrop, rgba(0, 0, 0, .7)); }
 .sheet h2:focus { outline: none; }
 .sheet h2 { font-size: 28px; font-weight: 720; letter-spacing: -.025em; line-height: 1.1; padding-right: 48px; }
 .sheet-text { margin-top: 8px; color: var(--muted); font-size: 16px; }
@@ -226,7 +266,7 @@ button { border: 0; background: none; cursor: pointer; }
   text-decoration: none;
   transition: transform .2s var(--ease), background .2s;
 }
-.btn:hover { background: #2e2e2e; }
+.btn:hover { background: var(--surface-3); }
 .btn:active { transform: scale(.97); }
 .btn-main, .btn-main:hover { background: var(--ink); color: var(--bg); }
 .sheet-close-form { position: absolute; top: 16px; right: 16px; }

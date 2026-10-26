@@ -25,8 +25,9 @@ El email (`mguem10@gmail.com`) ya está puesto en `app.js`, en `CONTACTO`.
 
 Abre `vista-movil.html` en el PC. Muestra la página dentro de un móvil, por defecto con la barra
 del navegador de Instagram, que es como la ve quien toca el enlace de la bio. Arriba se elige el modelo
-(iPhone 15, iPhone SE, Pro Max, Android), se quita o se pone la barra de Instagram y se recarga
-para volver a ver la animación de entrada. Tras cambiar `index.html`, pulsa **Recargar**.
+(iPhone 15, iPhone SE, Pro Max, Android), el tema (**Como el PC**, **Claro** u **Oscuro**), se quita
+o se pone la barra de Instagram y se recarga para volver a ver la animación de entrada. Tras cambiar
+`index.html`, pulsa **Recargar**.
 
 La página cabe entera sin scroll en todos esos modelos, también dentro de Instagram. En los más bajos
 (iPhone SE) se esconden la fila de iconos y el pie.
@@ -107,6 +108,11 @@ GitHub Actions**.
   HTML para que no lo recojan los robots de spam.
 - **Compartir** (arriba a la derecha): el menú de compartir del móvil, o copia el enlace en PC.
 - Móvil primero; a partir de 960 px de ancho se pone en dos columnas.
+- **Tema claro u oscuro según el visitante:** sigue el modo de su móvil u ordenador. En oscuro es
+  negra con "Contacta conmigo" blanco; en claro, blanca con "Contacta conmigo" negro y el logo de
+  TikTok en negro. Los colores están en las variables de `styles.css` (`:root` es el oscuro; la
+  paleta clara va justo debajo, escrita dos veces). `index.html?tema=claro` u `?tema=oscuro` fuerza
+  uno de los dos; lo usa la vista móvil.
 - La tipografía (Bricolage Grotesque, licencia OFL) va dentro de `fonts/` para que cargue rápido y no
   dependa de Google.
 
